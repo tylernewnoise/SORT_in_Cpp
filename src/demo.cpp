@@ -66,8 +66,8 @@ int main(int argc, char* argv[]) {
   std::cout << "Overall process time: " << timespan_local.count() << "\n"
             << "Total Tracking took: " << timespan.count() << " for "
             << overall_frames << " frames or "
-            << ((double)overall_frames / timespan.count()) << " FPS"
-            << std::endl;
+            << (static_cast<double>(overall_frames) / timespan.count())
+            << " FPS" << std::endl;
 
   if (display)
     std::cout << "Note: get real runtime results without the option [-d]."
@@ -214,8 +214,8 @@ std::map<std::size_t, std::vector<BBox>> readDetections(
     if (detection.size() < 10) continue;
 
     // Look up the detection...
-    std::size_t frame_nr = detection[0];
-    auto it = detections.find(frame_nr);
+    auto frame_nr = detection[0];
+    auto it = detections.find(static_cast<std::size_t>(frame_nr));
     if (it != detections.end()) {
       auto x{detection[2]};
       auto y{detection[3]};
@@ -233,7 +233,7 @@ std::map<std::size_t, std::vector<BBox>> readDetections(
       std::vector<BBox> frame_detections;
 
       frame_detections.push_back(bbox);
-      detections[frame_nr] = frame_detections;
+      detections[static_cast<std::size_t>(frame_nr)] = frame_detections;
     }
   }
 
@@ -260,26 +260,26 @@ void visualize(const std::vector<cv::String>& images, const std::size_t& frame,
     cv::Mat bgr;
     cv::Mat hsv(1, 1, CV_8UC3, createUniqueColorHsv(t.id));
     cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
-    const cv::Point top_left(t.bbox.x, t.bbox.y);
-    const cv::Point bottom_right{top_left +
-                                 cv::Point(t.bbox.width, t.bbox.height)};
+    const cv::Point_<float> top_left(t.bbox.x, t.bbox.y);
+    const cv::Point_<float> bottom_right{
+        top_left + cv::Point_<float>(t.bbox.width, t.bbox.height)};
 
     cv::rectangle(img, top_left, bottom_right,
                   cv::Scalar(bgr.data[0], bgr.data[1], bgr.data[2]), THICKNESS);
 
     const std::string label{std::to_string(t.id)};
     int baseline;
-    cv::Size text_size{
+    cv::Size_<float> text_size{
         cv::getTextSize(label, cv::FONT_HERSHEY_PLAIN, 1.0, 2.0, &baseline)};
 
     // Paint a neat box with the tracking id.
     cv::rectangle(img, top_left,
-                  cv::Point(top_left.x + 10 + text_size.width,
-                            top_left.y + 10 + text_size.height),
+                  cv::Point_<float>(top_left.x + 10 + text_size.width,
+                                    top_left.y + 10 + text_size.height),
                   cv::Scalar(bgr.data[0], bgr.data[1], bgr.data[2]), -1);
 
-    const cv::Point text_position(top_left.x + 5,
-                                  top_left.y + 5 + text_size.height);
+    const cv::Point_<float> text_position(top_left.x + 5,
+                                          top_left.y + 5 + text_size.height);
     cv::putText(img, label, text_position, cv::FONT_HERSHEY_PLAIN, 1.0,
                 cv::Scalar(255, 255, 255), 2.0);
   }

@@ -253,15 +253,16 @@ void SORT::associate_detections_to_trackers_(
   }
 
   // Create iou cost matrix.
-  std::size_t rows{detections.size()};
+  auto rows{detections.size()};
   std::size_t col;
-  std::size_t cols{trackers_.size()};
-  dlib::matrix<std::size_t> iou_cost(rows, cols);
+  auto cols{trackers_.size()};
+  dlib::matrix<std::size_t> iou_cost(static_cast<long>(rows),
+                                     static_cast<long>(cols));
 
   for (std::size_t row{0}; row < rows; ++row) {
     col = 0;
     for (auto& trk : trackers_) {
-      iou_cost(row, col) = std::size_t(
+      iou_cost(static_cast<long>(row), static_cast<long>(col)) = std::size_t(
           precision_ * iou_(detections[row], trk.second->get_state()));
       ++col;
     }
@@ -300,7 +301,8 @@ void SORT::associate_detections_to_trackers_(
 
   // Filter out matched with low iou and assign detections to tracks.
   for (std::size_t d{0}; d < lap.size(); ++d) {
-    if (iou_cost(d, lap[d]) < iou_threshold_) {
+    if (static_cast<double>(iou_cost(static_cast<long>(d), lap[d])) <
+        iou_threshold_) {
       if (d < detections.size()) unmatched_dets.push_back(d);
     } else {
       struct Match_ match;
